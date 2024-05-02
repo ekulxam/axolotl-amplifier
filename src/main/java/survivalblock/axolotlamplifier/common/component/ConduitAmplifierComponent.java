@@ -27,6 +27,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
     boolean hasConduit;
     boolean isConduitActive = false;
     private long nextAmbientSoundTime = 0;
+    private static final float SOUND_VOLUME = 0.5f;
     private final ConduitBlockEntity renderConduit = new ConduitBlockEntity(BlockPos.ORIGIN, Blocks.CONDUIT.getDefaultState());
     private ItemStack conduitStack = ItemStack.EMPTY;
 
@@ -87,13 +88,12 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
     public void serverTick() {
         if (this.shouldActivate()) {
             World world = this.axolotl.getWorld();
-            float soundVolume = 0.5f;
             BlockPos blockPos = this.axolotl.getBlockPos();
             long l = world.getTime();
             if (l % 40L == 0L) {
                 if (this.isConduitActive != this.renderConduit.isActive()) {
                     SoundEvent soundEvent = this.isConduitActive ? SoundEvents.BLOCK_CONDUIT_ACTIVATE : SoundEvents.BLOCK_CONDUIT_DEACTIVATE;
-                    world.playSound(null, blockPos, soundEvent, SoundCategory.BLOCKS, soundVolume, 1.0f);
+                    world.playSound(null, blockPos, soundEvent, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
                     this.isConduitActive = this.renderConduit.isActive();
                     sync();
                 }
@@ -117,12 +117,12 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
             }
             if (this.isConduitActive) {
                 if (l % 80L == 0L) {
-                    world.playSound(null, blockPos, SoundEvents.BLOCK_CONDUIT_AMBIENT, SoundCategory.NEUTRAL, soundVolume, 1.0f);
+                    world.playSound(null, blockPos, SoundEvents.BLOCK_CONDUIT_AMBIENT, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
                 }
                 if (l > this.nextAmbientSoundTime) {
                     this.nextAmbientSoundTime = l + 60L + (long)world.getRandom().nextInt(40);
                     sync();
-                    world.playSound(null, blockPos, SoundEvents.BLOCK_CONDUIT_AMBIENT_SHORT, SoundCategory.NEUTRAL, soundVolume, 1.0f);
+                    world.playSound(null, blockPos, SoundEvents.BLOCK_CONDUIT_AMBIENT_SHORT, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
                 }
             }
         }
@@ -143,5 +143,12 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
 
     private void sync(){
         AmplifierEntityComponents.CONDUIT_COMPONENT.sync(this.axolotl);
+    }
+
+    public void remove() {
+        if (this.getConduitStack() != null && this.getConduitStack() != ItemStack.EMPTY) this.axolotl.dropStack(this.getConduitStack());
+        this.setHasConduit(false);
+        this.axolotl.getWorld().playSound(null, this.axolotl.getBlockPos(), SoundEvents.BLOCK_CONDUIT_DEACTIVATE, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
+        sync();
     }
 }

@@ -35,8 +35,7 @@ public class ItemMixin {
                         conduitComponent.setConduitStack(stack.copyWithCount(1));
                         if (!user.isCreative()) stack.decrement(1);
                     } else if (stack.isOf(Items.SPONGE) && conduitComponent.getHasConduit()) {
-                        entity.dropStack(conduitComponent.getConduitStack());
-                        conduitComponent.setHasConduit(false);
+                        conduitComponent.remove();
                         ItemStack wetSpongeStack = Items.WET_SPONGE.getDefaultStack();
                         wetSpongeStack.setNbt(stack.getNbt());
                         user.getInventory().offerOrDrop(wetSpongeStack.copyWithCount(1));

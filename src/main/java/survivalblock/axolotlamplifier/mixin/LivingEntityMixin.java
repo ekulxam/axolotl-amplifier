@@ -23,11 +23,7 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropLoot(Lnet/minecraft/entity/damage/DamageSource;Z)V"))
     private void dropConduitOnDeath(DamageSource source, CallbackInfo ci){
         if ((LivingEntity) (Object) this instanceof AxolotlEntity axolotl) {
-            ConduitAmplifierComponent conduitComponent = AmplifierEntityComponents.CONDUIT_COMPONENT.get(axolotl);
-            ItemStack stack;
-            if (conduitComponent.getHasConduit() && (stack = conduitComponent.getConduitStack()) != ItemStack.EMPTY && stack != null) {
-                this.dropStack(stack);
-            }
+            AmplifierEntityComponents.CONDUIT_COMPONENT.get(axolotl).remove();
         }
     }
 }
