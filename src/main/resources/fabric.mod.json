@@ -1,0 +1,45 @@
+{
+	"schemaVersion": 1,
+	"id": "axolotl_amplifier",
+	"version": "${version}",
+	"name": "Axolotl Amplifier",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT-0",
+	"icon": "assets/axolotl_amplifier/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "survivalblock.axolotlamplifier.common.AxolotlAmplifier"
+		],
+		"client": [
+			"survivalblock.axolotlamplifier.client.AxolotlAmplifierClient"
+		],
+		"cardinal-components-entity": [
+			"survivalblock.axolotlamplifier.common.init.AmplifierEntityComponents"
+		]
+	},
+	"mixins": [
+		"axolotl_amplifier.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.10",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	},
+	"custom": {
+		"cardinal-components": [
+			"axolotl_amplifier:conduit"
+		]
+	}
+}

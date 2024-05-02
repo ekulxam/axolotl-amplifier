@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "survivalblock.axolotlamplifier.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ConduitBlockEntityMixin",
+    "ItemMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "AxolotlEntityRendererMixin",
+    "BuiltinModelItemRendererAccessor",
+    "ItemRendererAccessor"
+  ]
+}
