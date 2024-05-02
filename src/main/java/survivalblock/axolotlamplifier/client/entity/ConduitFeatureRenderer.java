@@ -32,12 +32,12 @@ public class ConduitFeatureRenderer extends FeatureRenderer<AxolotlEntity, Axolo
         if (axolotl.isBaby()) return;
         ConduitAmplifierComponent conduitComponent = AmplifierEntityComponents.CONDUIT_COMPONENT.get(axolotl);
         if (!conduitComponent.getHasConduit()) return;
-        float p = MathHelper.lerp(tickDelta, axolotl.prevPitch, axolotl.getPitch());
+        float pitch = MathHelper.lerp(tickDelta, axolotl.prevPitch, axolotl.getPitch());
         matrixStack.push();
         matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F));
-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(p));
+        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
         matrixStack.translate(-(axolotl.getBoundingBox().getXLength() / 2f) - 0.13f, -1.0, -0.3f);
-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-p));
+        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-pitch));
         BuiltinModelItemRenderer builtinModelItemRenderer = ((ItemRendererAccessor) MinecraftClient.getInstance().getItemRenderer()).getBuiltinModelItemRenderer();
         ((BuiltinModelItemRendererAccessor) builtinModelItemRenderer).getBlockEntityRenderDispatcher().renderEntity(conduitComponent.getRenderConduit(), matrixStack, vertexConsumerProvider, light, LivingEntityRenderer.getOverlay(axolotl, 0.0f));
         matrixStack.pop();

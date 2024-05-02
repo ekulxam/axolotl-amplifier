@@ -4,8 +4,10 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.ConduitBlockEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -16,6 +18,7 @@ import survivalblock.axolotlamplifier.access.ActiveConduitAccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Mixin(ConduitBlockEntity.class)
 public abstract class ConduitBlockEntityMixin implements ActiveConduitAccess {
@@ -40,6 +43,10 @@ public abstract class ConduitBlockEntityMixin implements ActiveConduitAccess {
     private static void updateTargetEntity(World world, BlockPos pos, ConduitBlockEntity blockEntity) {
         throw new UnsupportedOperationException();
     }
+
+    @Shadow private @Nullable LivingEntity targetEntity;
+
+    @Shadow private @Nullable UUID targetUuid;
 
     @Override
     public void axolotl_amplifier$setActive(boolean ticks) {
@@ -84,5 +91,18 @@ public abstract class ConduitBlockEntityMixin implements ActiveConduitAccess {
             return Math.max(original, 42);
         }
         return original;
+    }
+
+    @Override
+    public LivingEntity axolotl_amplifier$getTargetEntity() {
+        return this.targetEntity;
+    }
+
+    @Override
+    public void axolotl_amplifier$setTargetEntity(LivingEntity living) {
+        if (living == null || !living.isAlive()) return;
+        this.targetEntity = living;
+        UUID uuid = living.getUuid();
+        if (uuid != null) this.targetUuid = uuid;
     }
 }
