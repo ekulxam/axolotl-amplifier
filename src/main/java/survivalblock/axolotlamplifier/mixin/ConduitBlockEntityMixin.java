@@ -11,8 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import survivalblock.axolotlamplifier.access.ActiveConduitAccess;
 
@@ -25,8 +23,8 @@ public abstract class ConduitBlockEntityMixin implements ActiveConduitAccess {
     @Shadow private boolean active;
     @Shadow public int ticks;
     @Shadow private float ticksActive;
-    @Unique private static boolean shouldBypass;
-    @Unique private final static List<BlockPos> dummyList = new ArrayList<>();
+    @Unique private static boolean axolotl_amplifier$shouldBypass;
+    @Unique private final static List<BlockPos> axolotl_amplifier$DUMMY_LIST = new ArrayList<>();
     @Shadow protected abstract void setEyeOpen(boolean eyeOpen);
 
     @Shadow
@@ -70,13 +68,13 @@ public abstract class ConduitBlockEntityMixin implements ActiveConduitAccess {
 
     @Override
     public void axolotl_amplifier$invokeGivePlayersEffects(World world, BlockPos pos) {
-        shouldBypass = true;
-        givePlayersEffects(world, pos, dummyList);
+        axolotl_amplifier$shouldBypass = true;
+        givePlayersEffects(world, pos, axolotl_amplifier$DUMMY_LIST);
     }
     @Override
     public void axolotl_amplifier$invokeAttackHostileEntity(World world, BlockPos pos, ConduitBlockEntity conduit) {
-        shouldBypass = true;
-        attackHostileEntity(world, pos, Blocks.CONDUIT.getDefaultState(), dummyList, conduit);
+        axolotl_amplifier$shouldBypass = true;
+        attackHostileEntity(world, pos, Blocks.CONDUIT.getDefaultState(), axolotl_amplifier$DUMMY_LIST, conduit);
     }
 
     @Override
@@ -86,8 +84,8 @@ public abstract class ConduitBlockEntityMixin implements ActiveConduitAccess {
 
     @ModifyExpressionValue(method = {"givePlayersEffects", "attackHostileEntity"}, at = @At(value = "INVOKE", target = "Ljava/util/List;size()I"))
     private static int setToMaxSize(int original){
-        if (shouldBypass) {
-            shouldBypass = false;
+        if (axolotl_amplifier$shouldBypass) {
+            axolotl_amplifier$shouldBypass = false;
             return Math.max(original, 42);
         }
         return original;

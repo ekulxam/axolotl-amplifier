@@ -2,6 +2,7 @@ package survivalblock.axolotlamplifier.common;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.passive.AxolotlEntity;
 import net.minecraft.util.Identifier;
@@ -26,5 +27,8 @@ public class AxolotlAmplifier implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
+		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+			LOGGER.info("Portable Conduits have been loaded in!");
+		}
 	}
 }

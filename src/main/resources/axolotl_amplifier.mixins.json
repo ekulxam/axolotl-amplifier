@@ -12,8 +12,9 @@
     "defaultRequire": 1
   },
   "client": [
-    "AxolotlEntityRendererMixin",
-    "BuiltinModelItemRendererAccessor",
-    "ItemRendererAccessor"
+    "client.AxolotlEntityModelAccessor",
+    "client.AxolotlEntityRendererMixin",
+    "client.BuiltinModelItemRendererAccessor",
+    "client.ItemRendererAccessor"
   ]
 }

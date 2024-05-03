@@ -7,7 +7,6 @@ import net.minecraft.block.entity.ConduitBlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.AxolotlEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleTypes;
@@ -27,7 +26,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
     boolean hasConduit;
     boolean isConduitActive = false;
     private long nextAmbientSoundTime = 0;
-    private static final float SOUND_VOLUME = 0.5f;
+    private static final float SOUND_VOLUME = 0.8f;
     private final ConduitBlockEntity renderConduit = new ConduitBlockEntity(BlockPos.ORIGIN, Blocks.CONDUIT.getDefaultState());
     private ItemStack conduitStack = ItemStack.EMPTY;
 
@@ -92,7 +91,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
             long l = world.getTime();
             if (l % 40L == 0L) {
                 if (this.isConduitActive != this.renderConduit.isActive()) {
-                    SoundEvent soundEvent = this.isConduitActive ? SoundEvents.BLOCK_CONDUIT_ACTIVATE : SoundEvents.BLOCK_CONDUIT_DEACTIVATE;
+                    SoundEvent soundEvent = this.renderConduit.isActive() ? SoundEvents.BLOCK_CONDUIT_ACTIVATE : SoundEvents.BLOCK_CONDUIT_DEACTIVATE;
                     world.playSound(null, blockPos, soundEvent, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
                     this.isConduitActive = this.renderConduit.isActive();
                     sync();
@@ -110,7 +109,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
                         Vec3d directionNormalized = direction.normalize();
                         for (float step = 0; step * step < this.axolotl.getPos().squaredDistanceTo(targetPos); step += 0.2f) {
                             Vec3d vec3d = this.axolotl.getPos().add(directionNormalized.multiply(step));
-                            serverWorld.spawnParticles(ParticleTypes.NAUTILUS, vec3d.x, vec3d.y, vec3d.z,1, 0.1, 0.1, 0.1, 0.1);
+                            serverWorld.spawnParticles(ParticleTypes.NAUTILUS, vec3d.x, vec3d.y, vec3d.z,1, 0.1, 0.1, 0.1, 0.15);
                         }
                     }
                 }
@@ -145,10 +144,15 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
         AmplifierEntityComponents.CONDUIT_COMPONENT.sync(this.axolotl);
     }
 
-    public void remove() {
-        if (this.getConduitStack() != null && this.getConduitStack() != ItemStack.EMPTY) this.axolotl.dropStack(this.getConduitStack());
-        this.setHasConduit(false);
-        this.axolotl.getWorld().playSound(null, this.axolotl.getBlockPos(), SoundEvents.BLOCK_CONDUIT_DEACTIVATE, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
+    public void remove(boolean stopRendering) {
+        if (this.getConduitStack() != null && this.getConduitStack() != ItemStack.EMPTY) {
+            this.axolotl.dropStack(this.getConduitStack());
+            this.setConduitStack(ItemStack.EMPTY);
+        }
+        if (this.renderConduit.isActive()) {
+            this.axolotl.getWorld().playSound(null, this.axolotl.getBlockPos(), SoundEvents.BLOCK_CONDUIT_DEACTIVATE, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
+        }
+        this.setHasConduit(!stopRendering);
         sync();
     }
 }

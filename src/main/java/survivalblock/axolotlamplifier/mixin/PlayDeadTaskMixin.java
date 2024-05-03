@@ -40,6 +40,6 @@ public abstract class PlayDeadTaskMixin extends MultiTickTask<AxolotlEntity> {
         }
         axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 400, 1));
         axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 1200, 0, true, false));
-        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 1200, 2, true, false));
+        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 200, 2));
     }
 }
