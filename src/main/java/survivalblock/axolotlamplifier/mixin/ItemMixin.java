@@ -27,23 +27,21 @@ public class ItemMixin {
         if (!stack.isOf(Items.CONDUIT) && !stack.isOf(Items.SPONGE)) return;
         if (entity instanceof AxolotlEntity axolotl && entity.isAlive()) {
             ConduitAmplifierComponent conduitComponent = AmplifierEntityComponents.CONDUIT_COMPONENT.get(axolotl);
-            if (!axolotl.isBaby()) {
-                if (!user.getWorld().isClient) {
-                    entity.getWorld().emitGameEvent(entity, GameEvent.EQUIP, entity.getPos());
-                    if (stack.isOf(Items.CONDUIT) && !conduitComponent.getHasConduit()) {
-                        conduitComponent.setHasConduit(true);
-                        conduitComponent.setConduitStack(stack.copyWithCount(1));
-                        if (!user.isCreative()) stack.decrement(1);
-                    } else if (stack.isOf(Items.SPONGE) && conduitComponent.getHasConduit()) {
-                        conduitComponent.remove(true);
-                        ItemStack wetSpongeStack = Items.WET_SPONGE.getDefaultStack();
-                        wetSpongeStack.setNbt(stack.getNbt());
-                        user.getInventory().offerOrDrop(wetSpongeStack.copyWithCount(1));
-                        if (!user.isCreative()) stack.decrement(1);
-                    }
+            if (!user.getWorld().isClient) {
+                entity.getWorld().emitGameEvent(entity, GameEvent.EQUIP, entity.getPos());
+                if (stack.isOf(Items.CONDUIT) && !conduitComponent.getHasConduit()) {
+                    conduitComponent.setHasConduit(true);
+                    conduitComponent.setConduitStack(stack.copyWithCount(1));
+                    if (!user.isCreative()) stack.decrement(1);
+                } else if (stack.isOf(Items.SPONGE) && conduitComponent.getHasConduit()) {
+                    conduitComponent.remove(true);
+                    ItemStack wetSpongeStack = Items.WET_SPONGE.getDefaultStack();
+                    wetSpongeStack.setNbt(stack.getNbt());
+                    user.getInventory().offerOrDrop(wetSpongeStack.copyWithCount(1));
+                    if (!user.isCreative()) stack.decrement(1);
                 }
-                cir.setReturnValue(ActionResult.success(user.getWorld().isClient));
             }
+            cir.setReturnValue(ActionResult.success(user.getWorld().isClient));
         }
         cir.setReturnValue(ActionResult.PASS);
     }

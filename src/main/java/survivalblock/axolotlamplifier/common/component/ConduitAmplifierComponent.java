@@ -29,6 +29,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
     private static final float SOUND_VOLUME = 0.8f;
     private final ConduitBlockEntity renderConduit = new ConduitBlockEntity(BlockPos.ORIGIN, Blocks.CONDUIT.getDefaultState());
     private ItemStack conduitStack = ItemStack.EMPTY;
+    private float prevBodyPitch;
 
     public ConduitAmplifierComponent(AxolotlEntity axolotl) {
         this.axolotl = axolotl;
@@ -38,6 +39,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
         this.hasConduit = tag.getBoolean("HasConduit");
         this.isConduitActive = tag.getBoolean("IsActivated");
         this.nextAmbientSoundTime = tag.getLong("NextAmbientSoundTime");
+        this.prevBodyPitch = tag.getFloat("PreviousBodyPitch");
         if (tag.contains("ConduitStack", NbtElement.COMPOUND_TYPE)) {
             this.conduitStack = ItemStack.fromNbt(tag.getCompound("ConduitStack"));
         }
@@ -48,6 +50,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
         tag.putBoolean("HasConduit", this.hasConduit);
         tag.putBoolean("IsActivated", this.isConduitActive);
         tag.putLong("NextAmbientSoundTime", this.nextAmbientSoundTime);
+        tag.putFloat("PreviousBodyPitch", this.prevBodyPitch);
         tag.put("ConduitStack", this.conduitStack.writeNbt(new NbtCompound()));
     }
 
@@ -75,17 +78,22 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
 
     @Override
     public void clientTick() {
-        if (this.shouldActivate()) {
-            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTicks(this.axolotl.age);
-            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTicksActive(this.axolotl.age);
-            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$invokeUpdateTargetEntity(this.axolotl.getWorld(), this.axolotl.getBlockPos(), this.renderConduit);
+        if (this.getHasConduit()) {
+            if (this.renderConduit.isActive()) {
+                ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTicks(this.axolotl.age);
+                ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTicksActive(this.axolotl.age);
+                if (!this.axolotl.isPlayingDead()) ((ActiveConduitAccess) renderConduit).axolotl_amplifier$invokeUpdateTargetEntity(this.axolotl.getWorld(), this.axolotl.getBlockPos(), this.renderConduit);
+            } else {
+                ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTicks(0);
+                ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTicksActive(0);
+            }
         }
         CommonTickingComponent.super.clientTick();
     }
 
     @Override
     public void serverTick() {
-        if (this.shouldActivate()) {
+        if (this.renderConduit.isActive()) {
             World world = this.axolotl.getWorld();
             BlockPos blockPos = this.axolotl.getBlockPos();
             long l = world.getTime();
@@ -96,7 +104,7 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
                     this.isConduitActive = this.renderConduit.isActive();
                     sync();
                 }
-                if (this.isConduitActive) {
+                if (this.isConduitActive && !this.axolotl.isPlayingDead()) {
                     ((ActiveConduitAccess) renderConduit).axolotl_amplifier$invokeGivePlayersEffects(world, blockPos);
                     if (this.axolotl.getTarget() != null && this.axolotl.getTarget().isAlive()) {
                         ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setTargetEntity(this.axolotl.getTarget());
@@ -130,14 +138,11 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
 
     @Override
     public void tick() {
-        if (this.shouldActivate() && this.axolotl.getWorld().getTime() % 40L == 0L) {
-            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setActive(this.axolotl.isAlive());
-            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$invokeSetEyeOpen(this.axolotl.isAlive());
+        if (this.getHasConduit() && this.axolotl.getWorld().getTime() % 40L == 0L) {
+            boolean shouldInvoke = this.axolotl.isAlive() && this.axolotl.isSubmergedInWater();
+            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$setActive(shouldInvoke);
+            ((ActiveConduitAccess) renderConduit).axolotl_amplifier$invokeSetEyeOpen(shouldInvoke);
         }
-    }
-
-    private boolean shouldActivate(){
-        return this.getHasConduit() && this.axolotl.isTouchingWaterOrRain();
     }
 
     private void sync(){
@@ -145,14 +150,40 @@ public class ConduitAmplifierComponent implements AutoSyncedComponent, CommonTic
     }
 
     public void remove(boolean stopRendering) {
-        if (this.getConduitStack() != null && this.getConduitStack() != ItemStack.EMPTY) {
-            this.axolotl.dropStack(this.getConduitStack());
-            this.setConduitStack(ItemStack.EMPTY);
+        if (this.hasConduit) {
+            if (this.getConduitStack() != null && this.getConduitStack() != ItemStack.EMPTY) {
+                this.axolotl.dropStack(this.getConduitStack());
+                this.setConduitStack(ItemStack.EMPTY);
+            }
+            if (this.renderConduit.isActive()) {
+                this.axolotl.getWorld().playSound(null, this.axolotl.getBlockPos(), SoundEvents.BLOCK_CONDUIT_DEACTIVATE, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
+            }
+            this.setHasConduit(!stopRendering);
+            sync();
         }
-        if (this.renderConduit.isActive()) {
-            this.axolotl.getWorld().playSound(null, this.axolotl.getBlockPos(), SoundEvents.BLOCK_CONDUIT_DEACTIVATE, SoundCategory.NEUTRAL, SOUND_VOLUME, 1.0f);
+    }
+
+    public void particleRing(){
+        World world = this.axolotl.getWorld();
+        if (!world.isClient()) return;
+        float distance = 1.75f;
+        float velocityX = 0.01f * (world.getRandom().nextBoolean() ? 1 : -1);
+        float velocityY = 0.01f * (world.getRandom().nextBoolean() ? 1 : -1);
+        float velocityZ = 0.01f * (world.getRandom().nextBoolean() ? 1 : -1);
+        for (int i = 0; i < 360; i++) {
+            if (i % 5 != 0) continue;
+            world.addParticle(ParticleTypes.NAUTILUS, axolotl.getPos().x + Math.cos(i) * distance, axolotl.getPos().y, axolotl.getPos().z + Math.sin(i) * distance, velocityX, velocityY, velocityZ);
+            world.addParticle(ParticleTypes.NAUTILUS, axolotl.getPos().x, axolotl.getPos().y + Math.cos(i) * distance, axolotl.getPos().z + Math.sin(i) * distance, velocityX, velocityY, velocityZ);
+            world.addParticle(ParticleTypes.NAUTILUS, axolotl.getPos().x + Math.sin(i) * distance, axolotl.getPos().y + Math.cos(i) * distance, axolotl.getPos().z, velocityX, velocityY, velocityZ);
         }
-        this.setHasConduit(!stopRendering);
+    }
+
+    public float getPrevBodyPitch() {
+        return this.prevBodyPitch;
+    }
+
+    public void setPrevBodyPitch(float prevBodyPitch) {
+        this.prevBodyPitch = prevBodyPitch;
         sync();
     }
 }

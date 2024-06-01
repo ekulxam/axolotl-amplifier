@@ -20,7 +20,7 @@ import survivalblock.axolotlamplifier.common.init.AmplifierEntityComponents;
 import java.util.*;
 
 
-@Mixin(value = PlayDeadTask.class)
+@Mixin(PlayDeadTask.class)
 public abstract class PlayDeadTaskMixin extends MultiTickTask<AxolotlEntity> {
 
     public PlayDeadTaskMixin(Map<MemoryModuleType<?>, MemoryModuleState> requiredMemoryState) {
@@ -38,8 +38,7 @@ public abstract class PlayDeadTaskMixin extends MultiTickTask<AxolotlEntity> {
                 iterator.remove();
             }
         }
-        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 400, 1));
-        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 1200, 0, true, false));
-        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 200, 2));
+        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 400, 1)); // adds strength 2 for 20 seconds
+        axolotlEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 1200, 0, false, false)); // adds Fire Res 1 for 60 seconds, no show particles
     }
 }
